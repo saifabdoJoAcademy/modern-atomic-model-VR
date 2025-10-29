@@ -7,6 +7,35 @@
     <meta name="description" content="">
     <link rel="shortcut icon" href="TemplateData/favicon.ico">
     <link rel="stylesheet" href="TemplateData/style.css">
+    <style>
+      #vr-overlay {
+        position: absolute;
+        left: 50%;
+        bottom: 40px;
+        transform: translateX(-50%);
+        display: none;
+        background: transparent;
+        z-index: 9999;
+      }
+
+      #vr-overlay button {
+        background: #0a84ff;
+        border: none;
+        color: #fff;
+        padding: 14px 22px;
+        font-size: 18px;
+        border-radius: 10px;
+        cursor: pointer;
+        transform-origin: center;
+        animation: vrButtonPulse 1.6s ease-in-out infinite;
+      }
+
+      @keyframes vrButtonPulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.06); }
+        100% { transform: scale(1); }
+      }
+    </style>
   </head>
   <body>
     <div id="unity-container">
@@ -19,12 +48,10 @@
           <div id="unity-progress-bar-full"></div>
         </div>
       </div>
-      <div id="unity-footer">
-        <div id="unity-webgl-logo"></div>
-        <button id="entervr" value="Enter VR" disabled>VR</button>
-        <button id="enterar" value="Enter AR" disabled>AR</button>
-        <div id="unity-webxr-link">Using <a href="https://github.com/De-Panther/unity-webxr-export" target="_blank" title="WebXR Export">WebXR Export</a></div>
-        <div id="unity-build-title">chemistry-modern-atomic-model</div>
+      
+      <!-- Overlay button -->
+      <div id="vr-overlay">
+        <button id="enter-vr-overlay-btn">Enter VR</button>
       </div>
     </div>
     <script>
@@ -47,6 +74,9 @@
       var progressBarFull = document.querySelector("#unity-progress-bar-full");
       var fullscreenButton = document.querySelector("#unity-fullscreen-button");
       var unityInstance = null;
+      var vrOverlay = null;
+      var vrOverlayBtn = null;
+      var vrSupported = false;
       
 
       canvasContainer.style.width = "960px";
@@ -61,6 +91,9 @@
         }).then((instance) => {
           unityInstance = instance;
           loadingBar.style.display = "none";
+          if (vrSupported && vrOverlay) {
+            vrOverlay.style.display = "block";
+          }
           if (fullscreenButton)
           {
             fullscreenButton.onclick = () => {
@@ -73,22 +106,23 @@
       };
       document.body.appendChild(script);
 
-      let enterARButton = document.getElementById('enterar');
-      let enterVRButton = document.getElementById('entervr');
+      vrOverlay = document.getElementById('vr-overlay');
+      vrOverlayBtn = document.getElementById('enter-vr-overlay-btn');
 
-      document.addEventListener('onARSupportedCheck', function (event) {
-        enterARButton.disabled = !event.detail.supported;
-      }, false);
       document.addEventListener('onVRSupportedCheck', function (event) {
-        enterVRButton.disabled = !event.detail.supported;
+        vrSupported = event.detail.supported;
       }, false);
 
-      enterARButton.addEventListener('click', function (event) {
-        unityInstance.Module.WebXR.toggleAR();
-      }, false);
-      enterVRButton.addEventListener('click', function (event) {
-        unityInstance.Module.WebXR.toggleVR();
-      }, false);
+      if (vrOverlayBtn) {
+        vrOverlayBtn.addEventListener('click', function () {
+          if (unityInstance && unityInstance.Module && unityInstance.Module.WebXR) {
+            unityInstance.Module.WebXR.toggleVR();
+            if (vrOverlay) {
+              vrOverlay.style.display = 'none';
+            }
+          }
+        });
+      }
     </script>
   </body>
 </html>
