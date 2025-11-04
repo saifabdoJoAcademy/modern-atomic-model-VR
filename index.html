@@ -113,6 +113,28 @@
         vrSupported = event.detail.supported;
       }, false);
 
+        let currentSession = null;
+
+          if (navigator.xr) {
+            // Listen for session start (enter VR)
+            navigator.xr.addEventListener('sessiongranted', (e) => {
+            });
+
+            navigator.xr.requestSession = (function (originalRequestSession) {
+              return function () {
+                return originalRequestSession.apply(this, arguments).then(session => {
+                  currentSession = session;
+
+                  // This fires when you EXIT VR mode
+                  session.addEventListener('end', function () {
+                    vrOverlay.style.display = "block";
+                  });
+
+                  return session;
+                });
+              };
+            })(navigator.xr.requestSession);
+          }
       if (vrOverlayBtn) {
         vrOverlayBtn.addEventListener('click', function () {
           if (unityInstance && unityInstance.Module && unityInstance.Module.WebXR) {
